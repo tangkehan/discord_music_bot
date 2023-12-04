@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Bot {
-    public static String botToken = "MTE3NjIzMzQyOTk5MDM5NTkzNg.GEbd8h.1QGyg53tcTmR0Xp9hfUZCfUR4-OVU1genAJubM";
+    public static String botToken = null;
     public static void main( String[] args ) throws Exception
     {
 
