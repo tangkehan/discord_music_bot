@@ -4,6 +4,7 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,12 +33,33 @@ public class TrackScheduler extends AudioEventAdapter {
         }
     }
 
+    // list all the songs in the queue
+    public void listQueue(TextChannel channel) {
+        StringBuilder queueList = new StringBuilder("Current Queue:\n");
+
+        for (AudioTrack track : queue) {
+            queueList.append(track.getInfo().title).append("\n");
+        }
+
+        channel.sendMessage(queueList.toString()).queue();
+    }
+
 //    get to the next track
     public void nextTrack(){
-//        this.player.startTrack(this.queue.poll(), false);
-        if (!player.startTrack(queue.poll(), false) && queue.isEmpty()){
+
+        AudioTrack track = queue.poll();
+
+        if (track != null) {
+            this.player.startTrack(track, false);
+        } else {
+            this.player.stopTrack();
             this.guild.getAudioManager().closeAudioConnection();
         }
+
+//        this.player.startTrack(this.queue.poll(), false);
+//        if (!player.startTrack(queue.poll(), false) && queue.isEmpty()){
+//            this.guild.getAudioManager().closeAudioConnection();
+//        }
     }
 
 //    when a track end, we call the nextTrack function

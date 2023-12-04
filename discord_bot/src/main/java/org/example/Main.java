@@ -47,7 +47,7 @@ import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_VOICE_STATES;
 
 public class Main extends ListenerAdapter {
     public static String botToken = null;
-    public static String googleApi = null ;
+    public static String googleApi = null;
     public static String ownerID = null;
     private static YouTube getService() throws GeneralSecurityException, IOException {
         final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
@@ -164,6 +164,8 @@ public class Main extends ListenerAdapter {
                 channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
 
                 play(channel.getGuild(), musicManager, track, event);
+//                musicManager.scheduler.listQueue(channel);
+
             }
 
             @Override
@@ -177,6 +179,8 @@ public class Main extends ListenerAdapter {
                 channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
 
                 play(channel.getGuild(), musicManager, firstTrack, event);
+//                musicManager.scheduler.listQueue(channel);
+
             }
 
             @Override
@@ -201,9 +205,12 @@ public class Main extends ListenerAdapter {
 
     private void skipTrack(TextChannel channel) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+
+
         musicManager.scheduler.nextTrack();
 
         channel.sendMessage("Skipped to next track.").queue();
+        musicManager.scheduler.listQueue(channel);
     }
 
     private static boolean connectToFirstVoiceChannel(AudioManager audioManager, MessageReceivedEvent event) {
