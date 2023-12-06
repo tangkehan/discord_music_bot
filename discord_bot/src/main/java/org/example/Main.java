@@ -46,9 +46,9 @@ import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_VOICE_STATES;
 // then press Enter. You can now see whitespace characters in your code.
 
 public class Main extends ListenerAdapter {
-    public static String botToken = "MTE3NjIzMzQyOTk5MDM5NTkzNg.GCb6WP.JGfhKTh5Sil_Ww1P4mXCuY5FWMy90ZVdH27gVQ";
-    public static String googleApi = "AIzaSyA9OP8DOf8zaWHVwvCiKk-yqrAi80zxVOc";
-    public static String ownerID = "945162326598877204";
+    public static String botToken = null;
+    public static String googleApi = null;
+    public static String ownerID = null;
     private static YouTube getService() throws GeneralSecurityException, IOException {
         final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         final JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
