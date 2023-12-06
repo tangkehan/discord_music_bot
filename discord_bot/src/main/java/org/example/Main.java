@@ -46,9 +46,9 @@ import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_VOICE_STATES;
 // then press Enter. You can now see whitespace characters in your code.
 
 public class Main extends ListenerAdapter {
-    public static String botToken = null;
-    public static String googleApi = null;
-    public static String ownerID = null;
+    public static String botToken = "MTE3NjIzMzQyOTk5MDM5NTkzNg.GCb6WP.JGfhKTh5Sil_Ww1P4mXCuY5FWMy90ZVdH27gVQ";
+    public static String googleApi = "AIzaSyA9OP8DOf8zaWHVwvCiKk-yqrAi80zxVOc";
+    public static String ownerID = "945162326598877204";
     private static YouTube getService() throws GeneralSecurityException, IOException {
         final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         final JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
@@ -79,21 +79,6 @@ public class Main extends ListenerAdapter {
 
     public static void main(String[] args) {
 
-
-//        try {
-////            Object obj = new JSONParser().parse(new FileReader("settings.json"));
-////            JSONObject jo = (JSONObject) obj;
-////            botToken = (String) jo.get("botToken");
-////            googleApi = (String) jo.get("googleAPI");
-////            ownerID = (String) jo.get("ownerID");
-//            botToken = null;
-//            googleApi = null;
-//            ownerID = null;
-//        }catch(Exception e){
-//            System.out.println("didn't find settings");
-//        }
-
-
         JDA jda = JDABuilder.create(botToken, GUILD_MESSAGES, GUILD_VOICE_STATES)
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                 .addEventListeners(new Main())
@@ -114,12 +99,11 @@ public class Main extends ListenerAdapter {
 
     private synchronized GuildMusicManager getGuildAudioPlayer(Guild guild) {
 
-        guild.getAudioManager().closeAudioConnection();
         long guildId = Long.parseLong(guild.getId());
         GuildMusicManager musicManager = musicManagers.get(guildId);
 
         if (musicManager == null) {
-            musicManager = new GuildMusicManager(playerManager, guild);
+            musicManager = new GuildMusicManager(playerManager);
             musicManagers.put(guildId, musicManager);
         }
 
@@ -130,6 +114,7 @@ public class Main extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
 
         if ("$play".equals(command[0])) {
@@ -146,26 +131,28 @@ public class Main extends ListenerAdapter {
             }
 
         } else if ("$skip".equals(command[0])) {
-            skipTrack(event.getChannel().asTextChannel());
+            skipTrack(event.getChannel().asTextChannel(), event);
         } else if ("$shutdown".equals(command[0]) && ownerID.equals(event.getAuthor().getId())){
             event.getJDA().shutdown();
+        }else if ("$instruction".equals(command[0])) {
+            sendInstructions(event.getChannel().asTextChannel());
+        } else if ("$list".equals(command[0])) {
+            // list the queue
+            listQueue(event.getChannel().asTextChannel());
         }
 
         super.onMessageReceived(event);
     }
 
     private void loadAndPlay(final TextChannel channel, final String trackUrl, final MessageReceivedEvent event) {
-// set this musicManager to final
-        final GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+
+        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
 
         playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
                 channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
-
                 play(channel.getGuild(), musicManager, track, event);
-//                musicManager.scheduler.listQueue(channel);
-
             }
 
             @Override
@@ -177,9 +164,8 @@ public class Main extends ListenerAdapter {
                 }
 
                 channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
-
                 play(channel.getGuild(), musicManager, firstTrack, event);
-//                musicManager.scheduler.listQueue(channel);
+
 
             }
 
@@ -196,22 +182,46 @@ public class Main extends ListenerAdapter {
     }
 
     private void play(Guild guild, GuildMusicManager musicManager, AudioTrack track, MessageReceivedEvent event) {
+        System.out.println("Is autoManager connected in play: " + guild.getAudioManager().isConnected());
         if (connectToFirstVoiceChannel(guild.getAudioManager(), event)){
+            System.out.println("scheduler.queue() is going to be called");
             musicManager.scheduler.queue(track);
         }
 
-
     }
 
-    private void skipTrack(TextChannel channel) {
+
+
+    private void skipTrack(TextChannel channel, MessageReceivedEvent event) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+        boolean canSkip = musicManager.scheduler.nextTrack();
+        if (!canSkip){
+            channel.sendMessage("No more tracks in the queue.").queue();
+        }else{
+            channel.sendMessage("Skipped to next track.").queue();
+        }
+//        musicManager.scheduler.nextTrack();
+//        channel.sendMessage("Skipped to next track.").queue();
 
 
-        musicManager.scheduler.nextTrack();
-
-        channel.sendMessage("Skipped to next track.").queue();
-        musicManager.scheduler.listQueue(channel);
     }
+
+    // Add new Feature
+    private void sendInstructions(TextChannel channel) {
+        String instructions =
+                "**$play**: Play music. Usage: `$play <song>`\n" +
+                        "**$skip**: Skip the current track.\n" +
+                        "**$list**: Display all queued songs.\n"+
+                        "**$shutdown**: Shutdown the bot (Owner only).\n";
+        channel.sendMessage(instructions).queue();
+    }
+
+    private void listQueue(TextChannel textChannel) {
+        GuildMusicManager musicManager = getGuildAudioPlayer(textChannel.getGuild());
+        musicManager.scheduler.listQueue(textChannel);
+    }
+
+
 
     private static boolean connectToFirstVoiceChannel(AudioManager audioManager, MessageReceivedEvent event) {
         if (!audioManager.isConnected()) {
@@ -223,6 +233,6 @@ public class Main extends ListenerAdapter {
                 event.getChannel().asTextChannel().sendMessage("couldn't connect to channel").queue();
             }
         }
-        return false;
+        return true;
     }
 }
