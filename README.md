@@ -10,13 +10,13 @@ This project is a Discord music bot built using Java. It enables users to play m
 - Owner-only shutdown command for bot maintenance.
 
 ## Obtaining API Keys
-### Getting a Discord Bot Token
+### Getting a Discord Bot Token:
 - Go to the Discord Developer Portal (https://discord.com/developers/applications).
 - Create a new application and give it a name.
 - In the application, navigate to the "Bot" tab and click "Add Bot".
 - Under the bot settings, you'll find the token. Click "Copy" to save your bot token.
   
-### Getting a Google YouTube API Key
+### Getting a Google YouTube API Key:
 - Go to the Google Cloud Console (https://console.cloud.google.com/).
 - Create a new project.
 - Navigate to "APIs & Services" > "Dashboard" and click "ENABLE APIS AND SERVICES".
